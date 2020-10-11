@@ -1,0 +1,12 @@
+{
+  "name": "gcloud-vm-toggle",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Santi Espada <hola@santiespada.dev>",
+  "license": "MIT",
+  "dependencies": {
+    "@google-cloud/compute": "^2.2.0",
+    "dotenv": "^8.2.0",
+    "tcp-ping": "^0.1.1"
+  }
+}
