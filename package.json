@@ -4,9 +4,17 @@
   "main": "index.js",
   "author": "Santi Espada <hola@santiespada.dev>",
   "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "scripts": {
+    "start": "node -r esm index.js"
+  },
   "dependencies": {
     "@google-cloud/compute": "^2.2.0",
     "dotenv": "^8.2.0",
+    "esm": "^3.2.25",
+    "execution-time": "^1.4.1",
     "tcp-ping": "^0.1.1"
   }
 }
