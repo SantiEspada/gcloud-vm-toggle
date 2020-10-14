@@ -105,3 +105,4 @@ dist
 
 # Credentials
 gcloud_credentials.json
+serviceAccountKey.json
