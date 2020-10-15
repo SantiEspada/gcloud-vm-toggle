@@ -1,14 +1,7 @@
-import util from 'util';
-import TcpPing from 'tcp-ping';
 import Compute from '@google-cloud/compute';
 
 import { GOOGLE_APPLICATION_CREDENTIALS, ZONE, VM_NAME } from './config.js';
-
-const ping = util.promisify(TcpPing.ping);
-
-export async function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import { ping } from './util.js';
 
 export async function getCredentials() {
   const { default: credentials } = await import(GOOGLE_APPLICATION_CREDENTIALS);
@@ -52,18 +45,12 @@ export async function startVm({ vm, ipAddress, output = false }) {
 
   output && console.log(`🟡 ${VM_NAME} has started! Waiting for it to come up`);
 
-  let pool = true;
+  let pooling = true;
 
-  while (pool) {
-    try {
-      await ping({
-        address: ipAddress,
-      });
+  while (pooling) {
+    const isUp = await ping({ ipAddress });
 
-      pool = false;
-    } catch (err) {
-      // keep trying...
-    }
+    pooling = !isUp;
   }
 
   output && console.log(`🟢 ${VM_NAME} is up!`);
@@ -90,5 +77,73 @@ export async function guessOperation({ vm, status, ipAddress, output = false }) 
     case 'RUNNING':
       await stopVm({ vm, output });
       break;
+  }
+}
+
+export async function getVmInfo() {
+  const credentials = await getCredentials();
+
+  const vm = await getVm(credentials);
+
+  const { status: vmStatus, ipAddress } = await getVmMetadata(vm);
+
+  let status;
+
+  switch (vmStatus) {
+    case 'RUNNING':
+      const isUp = await ping({ ipAddress, timeout: 100, attempts: 2 });
+
+      status = isUp ? 'up' : 'going_up';
+      break;
+    case 'STOPPING':
+      status = 'going_down';
+      break;
+    case 'TERMINATED':
+      status = 'down';
+      break;
+    default:
+      status = 'unknown';
+  }
+
+  return {
+    name: VM_NAME,
+    status,
+  };
+}
+
+export async function toggleVm({ operationType = null, output = false }) {
+  const credentials = await getCredentials();
+
+  const vm = await getVm(credentials);
+
+  const { status, ipAddress } = await getVmMetadata(vm);
+
+  if (operationType) {
+    switch (operationType) {
+      case 'up':
+        if (status === 'RUNNING') {
+          return output && console.log(`ℹ️  ${VM_NAME} is up`);
+        } else {
+          await startVm({ vm, ipAddress, output });
+        }
+        break;
+      case 'down':
+        if (status === 'TERMINATED') {
+          return output && console.log(`ℹ️  ${VM_NAME} is stopped`);
+        } else if (status === 'STOPPING') {
+          output && console.log(`🟡 ${VM_NAME} is stopping...`);
+
+          await wait(10 * 1000);
+
+          return main();
+        } else {
+          await stopVm({ vm, output });
+        }
+        break;
+      default:
+        return output && console.error(`🚫 Unknown operation type "${operationType}"`);
+    }
+  } else {
+    await guessOperation({ vm, status, ipAddress, output });
   }
 }

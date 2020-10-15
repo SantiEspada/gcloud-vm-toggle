@@ -1,8 +1,10 @@
 import path from 'path';
-import url from 'url';
+
 import dotenv from 'dotenv';
 
-const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+import { dirname } from './util';
+
+const __dirname = dirname(import.meta.url);
 
 dotenv.config({
   path: path.resolve(__dirname, '.env'),
