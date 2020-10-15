@@ -11,7 +11,7 @@
     "start": "node -r esm index.js",
     "lambda:dev": "node -r esm scripts/lambda-dev.js",
     "lambda:build": "node -r esm scripts/lambda-build.js",
-    "gcp-build": "npm run lambda-build"
+    "gcp-build": "npm run lambda:build"
   },
   "dependencies": {
     "@google-cloud/compute": "^2.2.0",
