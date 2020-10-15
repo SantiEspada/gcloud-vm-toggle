@@ -106,3 +106,6 @@ dist
 # Credentials
 gcloud_credentials.json
 serviceAccountKey.json
+
+# Lambda build
+index.backup.js
